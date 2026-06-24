@@ -20,7 +20,13 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Mesh } from "three";
 
-const roles = ["Software Engineer", "AI Developer", "Open Source Contributor", "Problem Solver"];
+const rotatingPhrases = [
+  "Building AI-powered products",
+  "Designing scalable software systems",
+  "Creating full-stack applications",
+  "Exploring embedded engineering",
+  "Documenting my engineering journey"
+];
 
 const skillGroups = [
   { label: "Programming", skills: ["Java", "Python", "C++", "JavaScript", "TypeScript"] },
@@ -114,30 +120,42 @@ function PlanetScene({ animate }: { animate: boolean }) {
   );
 }
 
-function Typewriter() {
-  const [role, setRole] = useState(0);
-  const [letters, setLetters] = useState(0);
+function RotatingTagline() {
   const reduce = useReducedMotion();
+  const [index, setIndex] = useState(0);
+  const longestPhrase = useMemo(
+    () => rotatingPhrases.reduce((a, b) => (a.length >= b.length ? a : b), ""),
+    []
+  );
 
   useEffect(() => {
-    if (reduce) {
-      setLetters(roles[0].length);
-      return;
-    }
-    const text = roles[role];
-    if (letters < text.length) {
-      const id = window.setTimeout(() => setLetters((value) => value + 1), 55);
-      return () => window.clearTimeout(id);
-    }
-    const pause = window.setTimeout(() => {
-      setLetters(0);
-      setRole((value) => (value + 1) % roles.length);
-    }, 1400);
-    return () => window.clearTimeout(pause);
-  }, [letters, reduce, role]);
+    if (reduce) return;
+    const id = window.setTimeout(
+      () => setIndex((value) => (value + 1) % rotatingPhrases.length),
+      2800
+    );
+    return () => window.clearTimeout(id);
+  }, [index, reduce]);
 
-  return <span>{roles[role].slice(0, letters)}<span className="cursor-pulse">|</span></span>;
+  return (
+    <span className="rotating-tagline" aria-live="polite" aria-atomic="true">
+      <span className="rotating-tagline-ghost" aria-hidden="true">{longestPhrase</span>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={rotatingPhrases[index]}
+          className="rotating-tagline-active"
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduce ? undefined : { opacity: 0, y: -8 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {rotatingPhrases[index]}
+      </motion.span>
+    </AnimatePresence>
+  </span>
+  );
 }
+
 
 function Starfield() {
   const stars = useMemo(
@@ -260,27 +278,29 @@ export default function Home() {
 
       <section id="hero" className="hero-grid relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-5 pb-20 pt-28 sm:px-8" aria-labelledby="hero-title">
         <div className="hero-copy z-10 max-w-3xl">
-          <motion.p className="hud-label" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>MISSION PORTFOLIO // VIT COMPUTER SCIENCE</motion.p>
+          <motion.p className="hero-eyebrow" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>Mission Portfolio // VIT Computer Science</motion.p>
           <motion.h1 id="hero-title" className="hero-title" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, ease: [0.22, 1, 0.36, 1] }}>
             Gabriel Thayil
           </motion.h1>
-          <motion.p className="mt-4 max-w-2xl text-xl text-white/78 sm:text-2xl" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            Software Engineer | AI Enthusiast | Full Stack Developer
+          <motion.p className="hero-tagline" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+            Computer Science Student | Full-Stack & AI Systems
           </motion.p>
-          <motion.p className="mt-5 max-w-2xl text-base leading-8 text-white/66 sm:text-lg" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
-            Exploring the intersection of software, artificial intelligence, and innovation.
+          <motion.p className="hero-description" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26, ease: [0.22, 1, 0.36, 1] }}>
+            Building AI-powered applications, scalable software systems, and full-stack tools that solve real problems.
           </motion.p>
-          <motion.div className="mt-7 font-display text-2xl font-semibold text-aurora" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-            <Typewriter />
+          <RotatingTagline />
+          <motion.div className="status-indicator" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.36 }}>
+            <span className="status-indicator-glow" aria-hidden="true" />
+            Currently seeking Software Engineering opportunities
           </motion.div>
-          <motion.div className="mt-9 flex flex-wrap gap-3" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <motion.div className="flex flex-wrap gap-3" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }}>
             <a className="primary-btn" href="/Gabriel_Resume.docx" target="_blank" rel="noopener noreferrer" aria-label="Download Gabriel's resume"><Download size={18} /> Resume</a>
             <a className="icon-btn" href="https://github.com/GabrielNThayil/" target="_blank" rel="noopener noreferrer" aria-label="View Gabriel's GitHub profile"><Github size={18} /> GitHub</a>
             <a className="icon-btn" href="https://www.linkedin.com/in/gabrielthayil/" target="_blank" rel="noopener noreferrer" aria-label="View Gabriel's LinkedIn profile"><Linkedin size={18} /> LinkedIn</a>
             <a className="icon-btn" href="#contact" aria-label="Contact Gabriel"><Mail size={18} /> Contact</a>
           </motion.div>
-          <motion.div className="recruiter-strip" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.62, ease: [0.22, 1, 0.36, 1] }}>
-            <div><strong>Builds</strong><span>AI workflows, full stack apps, product-focused tools</span></div>
+          <motion.div className="recruiter-strip" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54, ease: [0.22, 1, 0.36, 1] }}>
+            <div><strong>Builds</strong><span>AI workflows, full-stack apps, product-focused tools</span></div>
             <div><strong>Stack</strong><span>Java, Python, React, Next.js, Flask, Spring Boot</span></div>
             <div><strong>Seeking</strong><span>Software engineering internships</span></div>
           </motion.div>
@@ -306,8 +326,8 @@ export default function Home() {
           </Canvas>
           <div className="planet-stats">
             <div className="planet-stat"><strong>3+</strong>Years Coding</div>
-            <div className="planet-stat"><strong>5+</strong>Projects Built</div>
-            <div className="planet-stat"><strong>∞</strong>Ideas Ready</div>
+            <div className="planet-stat"><strong>10+</strong>Projects Built</div>
+            <div className="planet-stat"><strong>∞</strong>Curiosity</div>
           </div>
         </motion.div>
       </section>

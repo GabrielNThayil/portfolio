@@ -15,9 +15,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Gabriel Thayil | Software Engineer Portfolio",
+  title: "Gabriel Thayil — CS Student | Full-Stack & AI Systems",
   description:
-    "Space and astronomy themed portfolio for Gabriel Thayil, software engineer, AI enthusiast, and full stack developer."
+    "Portfolio of Gabriel Thayil — computer science student building AI-powered applications, scalable software systems, and full-stack tools. Seeking software engineering opportunities."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
