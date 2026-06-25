@@ -283,10 +283,10 @@ export default function Home() {
             Gabriel Thayil
           </motion.h1>
           <motion.p className="hero-tagline" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, ease: [0.22, 1, 0.36, 1] }}>
-            Computer Science Student | Full-Stack & AI Systems
+            Building Intelligent Software Systems
           </motion.p>
           <motion.p className="hero-description" initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26, ease: [0.22, 1, 0.36, 1] }}>
-            Building AI-powered applications, scalable software systems, and full-stack tools that solve real problems.
+            Passionate about AI applications, full-stack development, embedded engineering, and crafting elegant solutions to complex problems. Turning creative ideas into production-ready software.
           </motion.p>
           <RotatingTagline />
           <motion.div className="status-indicator" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.36 }}>
@@ -300,9 +300,9 @@ export default function Home() {
             <a className="icon-btn" href="#contact" aria-label="Contact Gabriel"><Mail size={18} /> Contact</a>
           </motion.div>
           <motion.div className="recruiter-strip" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54, ease: [0.22, 1, 0.36, 1] }}>
-            <div><strong>Builds</strong><span>AI workflows, full-stack apps, product-focused tools</span></div>
-            <div><strong>Stack</strong><span>Java, Python, React, Next.js, Flask, Spring Boot</span></div>
-            <div><strong>Seeking</strong><span>Software engineering internships</span></div>
+            <div><strong>Focus</strong><span>AI systems, full-stack dev, embedded engineering</span></div>
+            <div><strong>Stack</strong><span>Python, Java, React, Flask, Spring Boot, C++</span></div>
+            <div><strong>Goal</strong><span>Software engineering opportunities</span></div>
           </motion.div>
         </div>
         <motion.div className="planet-stage" initial={{ opacity: 0, scale: 0.86 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.28, duration: 0.9, ease: [0.22, 1, 0.36, 1] }} aria-hidden="true">
