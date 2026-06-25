@@ -139,7 +139,7 @@ function RotatingTagline() {
 
   return (
     <span className="rotating-tagline" aria-live="polite" aria-atomic="true">
-      <span className="rotating-tagline-ghost" aria-hidden="true">{longestPhrase</span>
+      <span className="rotating-tagline-ghost" aria-hidden="true">{longestPhrase}</span>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={rotatingPhrases[index]}
