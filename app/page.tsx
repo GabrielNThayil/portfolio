@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Mesh } from "three";
+import Link from "next/link";
+import { Starfield } from "@/components/Starfield";
 
 const rotatingPhrases = [
   "Building AI-powered products",
@@ -157,31 +159,6 @@ function RotatingTagline() {
 }
 
 
-function Starfield() {
-  const stars = useMemo(
-    () =>
-      Array.from({ length: 130 }, (_, index) => ({
-        id: index,
-        left: `${(index * 37) % 100}%`,
-        top: `${(index * 61) % 100}%`,
-        size: `${1 + (index % 4) * 0.7}px`,
-        delay: `${(index % 17) * 0.22}s`
-      })),
-    []
-  );
-
-  return (
-    <div className="starfield" aria-hidden="true">
-      {stars.map((star) => (
-        <span key={star.id} style={{ left: star.left, top: star.top, width: star.size, height: star.size, animationDelay: star.delay }} />
-      ))}
-      <i className="shooting shooting-one" />
-      <i className="shooting shooting-two" />
-      <i className="shooting shooting-three" />
-    </div>
-  );
-}
-
 function CustomCursor() {
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const reduce = useReducedMotion();
@@ -272,7 +249,9 @@ export default function Home() {
             {["About", "Skills", "Projects", "Experience", "Contact"].map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`} className="transition hover:text-ion">{item}</a>
             ))}
+            <Link href="/blog" className="text-aurora transition hover:text-ion">Blog</Link>
           </div>
+          <Link href="/blog" className="text-xs uppercase tracking-[0.18em] text-aurora transition hover:text-ion md:hidden">Blog</Link>
         </div>
       </nav>
 
