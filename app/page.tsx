@@ -10,7 +10,7 @@ import {
   Linkedin,
   Mail,
   Menu,
-  Radio,
+  Rocket,
   Satellite,
   ShieldCheck,
   Sparkles,
@@ -230,6 +230,8 @@ function useTelemetry() {
   const [clock, setClock] = useState<string | null>(null);
   const [depth, setDepth] = useState(0);
   const [active, setActive] = useState("hero");
+  /** 0..1 position along the section rail: section index plus progress through that section. */
+  const [flight, setFlight] = useState(0);
 
   useEffect(() => {
     const tick = () => setClock(new Date().toISOString().slice(11, 19));
@@ -245,12 +247,21 @@ function useTelemetry() {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setDepth(max > 0 ? Math.round((window.scrollY / max) * 100) : 0);
       const probe = window.innerHeight * 0.35;
-      let current = "hero";
-      for (const { id } of trackedSections) {
+      let index = 0;
+      trackedSections.forEach(({ id }, i) => {
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= probe) current = id;
+        if (el && el.getBoundingClientRect().top <= probe) index = i;
+      });
+      const el = document.getElementById(trackedSections[index].id);
+      let within = 0;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        within = Math.min(1, Math.max(0, (probe - rect.top) / Math.max(rect.height, 1)));
       }
-      setActive(current);
+      const last = trackedSections.length - 1;
+      const atBottom = max > 0 && window.scrollY >= max - 2;
+      setActive(trackedSections[atBottom ? last : index].id);
+      setFlight(atBottom ? 1 : Math.min(1, (index + (index === last ? 0 : within)) / last));
     };
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
@@ -265,27 +276,50 @@ function useTelemetry() {
     };
   }, []);
 
-  return { clock, depth, active };
+  return { clock, depth, active, flight };
 }
 
-function SectionRail({ active }: { active: string }) {
+/** Sidebar flight path: one stop per section, with a rocket that travels down it as you scroll. */
+function SectionRail({ active, flight, depth }: { active: string; flight: number; depth: number }) {
+  const activeIndex = trackedSections.findIndex((s) => s.id === active);
   return (
-    <nav className="section-rail" aria-label="Section tracker">
-      <ol>
-        {trackedSections.map((section, index) => (
-          <li key={section.id}>
-            <a href={`#${section.id}`} aria-current={active === section.id ? "true" : undefined}>
-              <span className="rail-label">{section.label}</span>
-              <span className="rail-tick" aria-hidden="true">{String(index).padStart(2, "0")}</span>
-            </a>
-          </li>
-        ))}
-      </ol>
+    <nav className="section-rail" aria-label="Page sections">
+      <p className="rail-title" aria-hidden="true">Flight path</p>
+      <div className="rail-body" style={{ "--flight": flight } as React.CSSProperties}>
+        <div className="rail-line" aria-hidden="true"><i /></div>
+        <Rocket className="rail-rocket" size={16} aria-hidden="true" />
+        <ol>
+          {trackedSections.map((section, index) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                aria-current={active === section.id ? "true" : undefined}
+                className={index < activeIndex ? "is-passed" : undefined}
+              >
+                <span className="rail-dot" aria-hidden="true" />
+                <span className="rail-num" aria-hidden="true">{String(index).padStart(2, "0")}</span>
+                <span className="rail-label">{section.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <p className="rail-depth" aria-hidden="true">{String(depth).padStart(3, "0")}%</p>
     </nav>
   );
 }
 
-function SiteNav({ clock, depth, active }: ReturnType<typeof useTelemetry>) {
+/** Thin trajectory bar under the nav for screens too narrow for the sidebar. */
+function FlightBar({ depth }: { depth: number }) {
+  return (
+    <div className="flight-bar" style={{ "--depth": depth / 100 } as React.CSSProperties} aria-hidden="true">
+      <i />
+      <Rocket size={13} className="flight-bar-rocket" />
+    </div>
+  );
+}
+
+function SiteNav({ clock, depth, active }: Pick<ReturnType<typeof useTelemetry>, "clock" | "depth" | "active">) {
   const [open, setOpen] = useState(false);
   const activeLabel = trackedSections.find((s) => s.id === active)?.label ?? "";
   return (
@@ -314,6 +348,7 @@ function SiteNav({ clock, depth, active }: ReturnType<typeof useTelemetry>) {
           <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
         </button>
       </div>
+      <FlightBar depth={depth} />
       {open && (
         <div id="mobile-menu" className="mobile-menu md:hidden">
           {navItems.map((item) => (
@@ -330,12 +365,22 @@ export default function Home() {
   const { scrollYProgress } = useScroll();
   const nebulaY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
   const [loading, setLoading] = useState(true);
+  const [countdown, setCountdown] = useState(3);
   const reduce = useReducedMotion();
   const telemetry = useTelemetry();
 
   useEffect(() => {
-    const id = window.setTimeout(() => setLoading(false), reduce ? 150 : 1400);
-    return () => window.clearTimeout(id);
+    if (reduce) {
+      const id = window.setTimeout(() => setLoading(false), 150);
+      return () => window.clearTimeout(id);
+    }
+    const timers = [
+      window.setTimeout(() => setCountdown(2), 450),
+      window.setTimeout(() => setCountdown(1), 900),
+      window.setTimeout(() => setCountdown(0), 1350),
+      window.setTimeout(() => setLoading(false), 1700)
+    ];
+    return () => timers.forEach((id) => window.clearTimeout(id));
   }, [reduce]);
 
   return (
@@ -352,10 +397,13 @@ export default function Home() {
             aria-atomic="true"
           >
             <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="boot-panel">
-              <Radio className="h-8 w-8 text-aurora" aria-hidden="true" />
+              <div className="boot-head">
+                <Rocket className={`boot-rocket ${countdown === 0 ? "is-lifting" : ""}`} aria-hidden="true" />
+                <span className="boot-count" aria-hidden="true">{countdown > 0 ? `T−${countdown}` : "Liftoff"}</span>
+              </div>
               <p>GABRIEL THAYIL CAREER SYSTEM</p>
-              <span>Booting navigation, telemetry, and project archives...</span>
-              <div className="boot-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-label="System boot progress">
+              <span>Launch sequence: navigation, telemetry, and project archives...</span>
+              <div className="boot-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-label="Launch sequence progress">
                 <i aria-hidden="true" />
               </div>
             </motion.div>
@@ -366,7 +414,7 @@ export default function Home() {
       <Starfield />
       <motion.div className="nebula-layer" style={{ y: nebulaY }} aria-hidden="true" />
       <SiteNav {...telemetry} />
-      <SectionRail active={telemetry.active} />
+      <SectionRail active={telemetry.active} flight={telemetry.flight} depth={telemetry.depth} />
 
       <section id="hero" className="hero-grid relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-5 pb-20 pt-28 sm:px-8" aria-labelledby="hero-title">
         <div className="hero-copy z-10 max-w-3xl">
@@ -538,6 +586,9 @@ export default function Home() {
       <footer className="site-footer">
         <span>© {new Date().getFullYear()} Gabriel Thayil</span>
         <Link href="/blog">Read the blog</Link>
+        <a href="#hero" className="back-to-launch">
+          <Rocket size={16} aria-hidden="true" /> Back to launch
+        </a>
       </footer>
     </main>
   );
