@@ -291,8 +291,8 @@ function SiteNav({ clock, depth, active }: ReturnType<typeof useTelemetry>) {
   return (
     <nav className="site-nav fixed left-0 right-0 top-0 z-40 px-5 py-3.5" aria-label="Primary navigation">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-        <a href="#hero" className="font-display text-sm font-bold uppercase tracking-[0.28em] text-white">GT // ORBITAL</a>
-        <div className="console-readout hidden lg:flex" aria-hidden="true">
+        <a href="#hero" className="whitespace-nowrap font-display text-sm font-bold uppercase tracking-[0.28em] text-white">GT // ORBITAL</a>
+        <div className="console-readout hidden xl:flex" aria-hidden="true">
           <span><i>UTC</i>{clock ?? "--:--:--"}</span>
           <span><i>Depth</i>{String(depth).padStart(3, "0")}%</span>
           <span className="readout-section"><i>Sector</i>{activeLabel}</span>
@@ -414,7 +414,7 @@ export default function Home() {
           <div className="particle" />
           <div className="particle" />
           <div className="reticle" />
-          <Canvas style={{ position: "absolute", inset: 0, height: "auto" }} camera={{ position: [0, 0, 5.4], fov: 44 }} dpr={[1, 1.7]} performance={{ min: 0.5 }}>
+          <Canvas style={{ position: "absolute", inset: 0, height: "auto" }} camera={{ position: [0, 0, 5.4], fov: 52 }} dpr={[1, 1.7]} performance={{ min: 0.5 }}>
             <PlanetScene animate={!reduce} />
           </Canvas>
           <div className="planet-stats">
