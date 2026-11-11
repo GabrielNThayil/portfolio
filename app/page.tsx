@@ -9,12 +9,13 @@ import {
   Github,
   Linkedin,
   Mail,
+  Menu,
   Radio,
   Satellite,
-  Send,
   ShieldCheck,
   Sparkles,
   Trophy,
+  X,
   Zap
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -31,42 +32,64 @@ const rotatingPhrases = [
 ];
 
 const skillGroups = [
-  { label: "Programming", skills: ["Java", "Python", "C++", "JavaScript", "TypeScript"] },
-  { label: "Frontend", skills: ["React", "Next.js", "Flutter", "HTML", "CSS", "Tailwind"] },
-  { label: "Backend", skills: ["Spring Boot", "Flask", "Node.js", "REST APIs"] },
-  { label: "Database", skills: ["MySQL", "PostgreSQL", "MongoDB"] },
-  { label: "AI & ML", skills: ["Machine Learning", "Speech Recognition", "Generative AI", "Data Analysis"] },
-  { label: "Tools", skills: ["Git", "GitHub", "Docker", "Linux"] }
+  { label: "Languages", skills: ["Java", "Python", "TypeScript", "JavaScript", "C++"] },
+  { label: "Frontend", skills: ["React", "Next.js", "Flutter", "Tailwind"] },
+  { label: "Backend", skills: ["Spring Boot", "FastAPI", "Flask", "Node.js", "REST APIs"] },
+  { label: "Data", skills: ["PostgreSQL", "MySQL", "MongoDB"] },
+  { label: "AI & ML", skills: ["RAG", "LLM apps", "Gemini AI", "Speech recognition"] },
+  { label: "Embedded", skills: ["Arduino", "PID control", "IMU sensors"] },
+  { label: "Tools", skills: ["Git", "Docker", "Linux", "Swagger / OpenAPI"] }
 ];
 
-const projects = [
+type Project = {
+  title: string;
+  kind: string;
+  body: string;
+  stack: string[];
+  orbit: string;
+  github?: string;
+  live?: string;
+};
+
+const projects: Project[] = [
   {
-    title: "La Couronne Cafe Application",
-    body: "Flutter application for cafe management and customer experience, designed around a real business workflow.",
-    stack: ["Flutter", "Dart", "Product UX", "Business App"],
+    title: "AI-Powered ERP Copilot",
+    kind: "Enterprise software + AI",
+    body: "An ERP with a natural-language copilot: ask “which department spent the most this quarter?” and get an answer drawn from live, permission-checked data. JWT roles, approval workflows, audit logging.",
+    stack: ["Java 21", "Spring Boot", "PostgreSQL", "Gemini AI", "Docker"],
+    orbit: "orbit-d",
+    github: "https://github.com/GabrielNThayil/AI-Powered-ERP-Copilot"
+  },
+  {
+    title: "RAG Query Retrieval System",
+    kind: "AI / LLM",
+    body: "Retrieval-augmented generation over PDFs, DOCX and email. Hybrid BM25 + vector search, clause-level matching, and answers that trace back to their source.",
+    stack: ["Python", "FastAPI", "Hybrid search", "Docker"],
+    orbit: "orbit-c",
+    github: "https://github.com/GabrielNThayil/rag-query-retrieval"
+  },
+  {
+    title: "La Couronne Café",
+    kind: "Full-stack web app",
+    body: "The website for a real café: full menu, online ordering, and mood-based recommendations that pair drinks and desserts with how you feel.",
+    stack: ["Next.js", "TypeScript", "Tailwind", "NextAuth"],
     orbit: "orbit-a",
     github: "https://github.com/GabrielNThayil/LaCWeb"
   },
   {
-    title: "AI-Powered Equipment Inspection Assistant",
-    body: "Speech-to-text inspection workflow with a Flask backend and SQL persistence, built for the Caterpillar Hackathon.",
-    stack: ["Flask", "Speech-to-text", "SQL", "AI Workflow"],
-    orbit: "orbit-b",
-    github: null
+    title: "Equipment Inspection Assistant",
+    kind: "Caterpillar Hackathon",
+    body: "Inspectors speak, the app writes the report: speech-to-text turned into structured inspection records with a Flask backend and SQL storage.",
+    stack: ["Flask", "Speech-to-text", "SQL"],
+    orbit: "orbit-b"
   },
   {
-    title: "Second-Hand Marketplace Platform",
-    body: "College marketplace concept with product discovery, listing flows, and e-commerce inspired interactions.",
-    stack: ["Marketplace", "Full Stack", "UX", "Commerce"],
-    orbit: "orbit-c",
-    github: null
-  },
-  {
-    title: "E-Commerce Application",
-    body: "Product browsing and management app built with FakeStore API data and a clean commerce workflow.",
-    stack: ["FakeStore API", "React", "Products", "REST"],
-    orbit: "orbit-d",
-    github: null
+    title: "Telemetry PID Gimbal",
+    kind: "Embedded systems",
+    body: "An Arduino gimbal that holds itself level: IMU sensor fusion feeds a PID loop driving a servo, with temperature and humidity telemetry streamed as JSON.",
+    stack: ["Arduino C++", "MPU6050", "PID control", "DHT22"],
+    orbit: "orbit-e",
+    github: "https://github.com/GabrielNThayil/Telemetry-TVC-PID"
   }
 ];
 
@@ -176,15 +199,7 @@ function CustomCursor() {
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <motion.section
-      id={id}
-      className="relative mx-auto w-full max-w-7xl px-5 py-20 sm:px-8"
-      initial={{ opacity: 0, y: 34 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px", amount: 0.2 }}
-      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-      aria-labelledby={`${id}-title`}
-    >
+    <section id={id} className="site-section relative mx-auto w-full max-w-7xl px-5 sm:px-8" aria-labelledby={`${id}-title`}>
       <div className="mb-8 flex items-end justify-between gap-5">
         <div>
           <p className="hud-label">{eyebrow}</p>
@@ -193,7 +208,44 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
         <div className="constellation-line hidden sm:block" />
       </div>
       {children}
-    </motion.section>
+    </section>
+  );
+}
+
+const navItems = ["About", "Skills", "Projects", "Experience", "Contact"];
+
+function SiteNav() {
+  const [open, setOpen] = useState(false);
+  return (
+    <nav className="fixed left-0 right-0 top-0 z-40 border-b border-white/10 bg-void/75 px-5 py-4 backdrop-blur-xl" aria-label="Primary navigation">
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <a href="#hero" className="font-display text-sm font-bold uppercase tracking-[0.28em] text-white">GT // ORBITAL</a>
+        <div className="hidden items-center gap-5 text-xs uppercase tracking-[0.18em] text-white/62 md:flex">
+          {navItems.map((item) => (
+            <a key={item} href={`#${item.toLowerCase()}`} className="transition hover:text-ion">{item}</a>
+          ))}
+          <Link href="/blog" className="text-aurora transition hover:text-ion">Blog</Link>
+        </div>
+        <button
+          type="button"
+          className="mobile-menu-btn md:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+        </button>
+      </div>
+      {open && (
+        <div id="mobile-menu" className="mobile-menu md:hidden">
+          {navItems.map((item) => (
+            <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setOpen(false)}>{item}</a>
+          ))}
+          <Link href="/blog" className="text-aurora">Blog</Link>
+        </div>
+      )}
+    </nav>
   );
 }
 
@@ -202,22 +254,15 @@ export default function Home() {
   const nebulaY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
   const [loading, setLoading] = useState(true);
   const reduce = useReducedMotion();
-  const skipLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => setLoading(false), reduce ? 150 : 1400);
     return () => window.clearTimeout(id);
   }, [reduce]);
 
-  useEffect(() => {
-    if (!loading && skipLinkRef.current) {
-      skipLinkRef.current.focus();
-    }
-  }, [loading]);
-
   return (
     <main>
-      <a ref={skipLinkRef} className="skip-link" href="#projects">Skip to projects</a>
+      <a className="skip-link" href="#projects">Skip to projects</a>
       <AnimatePresence mode="wait">
         {loading && (
           <motion.div
@@ -242,18 +287,7 @@ export default function Home() {
       <CustomCursor />
       <Starfield />
       <motion.div className="nebula-layer" style={{ y: nebulaY }} aria-hidden="true" />
-      <nav className="fixed left-0 right-0 top-0 z-40 border-b border-white/10 bg-void/75 px-5 py-4 backdrop-blur-xl" aria-label="Primary navigation">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <a href="#hero" className="font-display text-sm font-bold uppercase tracking-[0.28em] text-white">GT // ORBITAL</a>
-          <div className="hidden items-center gap-5 text-xs uppercase tracking-[0.18em] text-white/62 md:flex">
-            {["About", "Skills", "Projects", "Experience", "Contact"].map((item) => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="transition hover:text-ion">{item}</a>
-            ))}
-            <Link href="/blog" className="text-aurora transition hover:text-ion">Blog</Link>
-          </div>
-          <Link href="/blog" className="text-xs uppercase tracking-[0.18em] text-aurora transition hover:text-ion md:hidden">Blog</Link>
-        </div>
-      </nav>
+      <SiteNav />
 
       <section id="hero" className="hero-grid relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-5 pb-20 pt-28 sm:px-8" aria-labelledby="hero-title">
         <div className="hero-copy z-10 max-w-3xl">
@@ -326,19 +360,13 @@ export default function Home() {
 
       <Section id="skills" eyebrow="02 // Orbital Skills" title="Planets In The Stack">
         <div className="skills-orbit">
-          {skillGroups.map((group, groupIndex) => (
-            <motion.div
-              className="skill-cluster"
-              key={group.label}
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 180, damping: 16 }}
-            >
-              <span className="cluster-index">0{groupIndex + 1}</span>
+          {skillGroups.map((group) => (
+            <div className="skill-cluster" key={group.label}>
               <h3>{group.label}</h3>
               <div>
                 {group.skills.map((skill) => <span key={skill}>{skill}</span>)}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </Section>
@@ -346,57 +374,49 @@ export default function Home() {
       <Section id="projects" eyebrow="03 // Solar Archive" title="Projects As Worlds">
         <div className="project-system">
           {projects.map((project, index) => (
-            <motion.article
-              className={`project-card ${project.orbit}`}
-              key={project.title}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.08 }}
-              whileHover={{ y: -10 }}
-            >
-              <div className="project-planet" aria-hidden="true"><Code2 size={24} /></div>
+            <article className={`project-card ${project.orbit} ${index === 0 ? "project-featured" : ""}`} key={project.title}>
+              <div className="project-head">
+                <div className="project-planet" aria-hidden="true"><Code2 size={22} /></div>
+                <p className="project-kind">{project.kind}</p>
+              </div>
               <h3>{project.title}</h3>
               <p>{project.body}</p>
               <div className="stack-row">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
-              <details>
-                <summary>Mission details</summary>
-                <p>Expandable recruiter scan: problem, implementation, and outcome can be swapped with live metrics when available.</p>
-              </details>
-              <div className="project-actions">
-                {project.github ? (
-                  <a href={project.github} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} GitHub`}><Github size={16} /> GitHub</a>
-                ) : (
-                  <span className="disabled-link" aria-disabled="true"><Github size={16} /> GitHub</span>
-                )}
-                <span className="disabled-link" aria-disabled="true"><ArrowUpRight size={16} /> Demo</span>
-              </div>
-            </motion.article>
+              {(project.github || project.live) && (
+                <div className="project-actions">
+                  {project.github && (
+                    <a href={project.github} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} source code on GitHub`}><Github size={16} aria-hidden="true" /> Code</a>
+                  )}
+                  {project.live && (
+                    <a href={project.live} target="_blank" rel="noopener noreferrer" aria-label={`Open ${project.title}`}><ArrowUpRight size={16} aria-hidden="true" /> Live site</a>
+                  )}
+                </div>
+              )}
+            </article>
           ))}
         </div>
       </Section>
 
       <Section id="experience" eyebrow="04 // Mission Timeline" title="Signals Of Initiative">
-        <div className="timeline">
-          {["Hackathon participation", "Open source contributions", "Music club leadership", "Robotics and technical club involvement"].map((item, index) => (
-            <motion.div key={item} className="timeline-item" whileInView={{ opacity: 1, x: 0 }} initial={{ opacity: 0, x: index % 2 ? 28 : -28 }} viewport={{ once: true }}>
+        <ul className="timeline">
+          {["Hackathon participation", "Open source contributions", "Music club leadership", "Robotics and technical club involvement"].map((item) => (
+            <li key={item} className="timeline-item">
               <Satellite aria-hidden="true" />
-              <span>0{index + 1}</span>
               <p>{item}</p>
-            </motion.div>
+            </li>
           ))}
-        </div>
+        </ul>
       </Section>
 
       <Section id="achievements" eyebrow="05 // Badge Vault" title="Collected Signals">
-        <div className="badge-grid">
+        <ul className="badge-grid">
           {achievements.map((achievement, index) => (
-            <motion.div className="badge" key={achievement} whileHover={{ rotate: index % 2 ? -2 : 2, scale: 1.04 }}>
-              {index % 3 === 0 ? <Trophy /> : index % 3 === 1 ? <ShieldCheck /> : <Zap />}
+            <li className="badge" key={achievement}>
+              {index === 0 ? <Trophy aria-hidden="true" /> : index < 3 ? <Zap aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}
               <span>{achievement}</span>
-            </motion.div>
+            </li>
           ))}
-        </div>
+        </ul>
       </Section>
 
       <Section id="beyond" eyebrow="06 // Beyond Coding" title="Rotating Galaxy Of Interests">
@@ -417,23 +437,27 @@ export default function Home() {
       </Section>
 
       <Section id="contact" eyebrow="07 // Deep Space Comms" title="Open A Channel">
-        <div className="contact-grid">
-          <form className="terminal-form" onSubmit={(event) => event.preventDefault()}>
-            <label htmlFor="name">Name<input id="name" name="name" placeholder="Your name" autoComplete="name" /></label>
-            <label htmlFor="email">Email<input id="email" name="email" placeholder="you@example.com" type="email" autoComplete="email" /></label>
-            <label htmlFor="message">Message<textarea id="message" name="message" placeholder="Transmission contents" rows={5} /></label>
-            <button type="button"><Send size={18} /> Send transmission</button>
-          </form>
-          <div className="contact-card">
-            <Radio aria-hidden="true" />
-            <h3>Recruiter frequency locked</h3>
-            <p>Available for software engineering internships, AI-focused projects, and full stack development opportunities.</p>
-            <a href="https://www.linkedin.com/in/gabrielthayil/" target="_blank" rel="noopener noreferrer"><Linkedin size={18} /> LinkedIn</a>
-            <a href="https://github.com/GabrielNThayil/" target="_blank" rel="noopener noreferrer"><Github size={18} /> GitHub</a>
-            <a href="mailto:gabriel@example.com"><Mail size={18} /> Email</a>
+        <div className="contact-panel">
+          <div className="contact-copy">
+            <span className="status-indicator-glow" aria-hidden="true" />
+            <h3>Looking for a software engineering internship</h3>
+            <p>
+              I&apos;m interested in teams building AI products, backend systems, or anything that touches hardware.
+              The fastest way to reach me is a LinkedIn message.
+            </p>
+          </div>
+          <div className="contact-links">
+            <a className="primary-btn" href="https://www.linkedin.com/in/gabrielthayil/" target="_blank" rel="noopener noreferrer"><Linkedin size={18} aria-hidden="true" /> Message me on LinkedIn</a>
+            <a className="icon-btn" href="https://github.com/GabrielNThayil/" target="_blank" rel="noopener noreferrer"><Github size={18} aria-hidden="true" /> GitHub</a>
+            <a className="icon-btn" href="/Gabriel_Resume.docx" target="_blank" rel="noopener noreferrer"><Download size={18} aria-hidden="true" /> Résumé</a>
           </div>
         </div>
       </Section>
+
+      <footer className="site-footer">
+        <span>© {new Date().getFullYear()} Gabriel Thayil</span>
+        <Link href="/blog">Read the blog</Link>
+      </footer>
     </main>
   );
 }
