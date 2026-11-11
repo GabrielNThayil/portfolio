@@ -28,3 +28,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts.next
 node_modules
+
+# Local blog data (dev fallback when no Blob credentials)
+.blog-data/
