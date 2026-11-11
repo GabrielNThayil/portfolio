@@ -205,7 +205,7 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
           <p className="hud-label">{eyebrow}</p>
           <h2 id={`${id}-title`} className="section-title">{title}</h2>
         </div>
-        <div className="constellation-line hidden sm:block" />
+        <div className="section-ruler hidden sm:block" aria-hidden="true" />
       </div>
       {children}
     </section>
@@ -214,12 +214,89 @@ function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string
 
 const navItems = ["About", "Skills", "Projects", "Experience", "Contact"];
 
-function SiteNav() {
-  const [open, setOpen] = useState(false);
+const trackedSections = [
+  { id: "hero", label: "Launch" },
+  { id: "about", label: "Mission log" },
+  { id: "skills", label: "Skills" },
+  { id: "projects", label: "Projects" },
+  { id: "experience", label: "Timeline" },
+  { id: "achievements", label: "Badges" },
+  { id: "beyond", label: "Beyond code" },
+  { id: "contact", label: "Contact" }
+];
+
+/** Real readouts for the HUD: UTC clock, scroll depth, and the section in view. */
+function useTelemetry() {
+  const [clock, setClock] = useState<string | null>(null);
+  const [depth, setDepth] = useState(0);
+  const [active, setActive] = useState("hero");
+
+  useEffect(() => {
+    const tick = () => setClock(new Date().toISOString().slice(11, 19));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setDepth(max > 0 ? Math.round((window.scrollY / max) * 100) : 0);
+      const probe = window.innerHeight * 0.35;
+      let current = "hero";
+      for (const { id } of trackedSections) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= probe) current = id;
+      }
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return { clock, depth, active };
+}
+
+function SectionRail({ active }: { active: string }) {
   return (
-    <nav className="fixed left-0 right-0 top-0 z-40 border-b border-white/10 bg-void/75 px-5 py-4 backdrop-blur-xl" aria-label="Primary navigation">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
+    <nav className="section-rail" aria-label="Section tracker">
+      <ol>
+        {trackedSections.map((section, index) => (
+          <li key={section.id}>
+            <a href={`#${section.id}`} aria-current={active === section.id ? "true" : undefined}>
+              <span className="rail-label">{section.label}</span>
+              <span className="rail-tick" aria-hidden="true">{String(index).padStart(2, "0")}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+function SiteNav({ clock, depth, active }: ReturnType<typeof useTelemetry>) {
+  const [open, setOpen] = useState(false);
+  const activeLabel = trackedSections.find((s) => s.id === active)?.label ?? "";
+  return (
+    <nav className="site-nav fixed left-0 right-0 top-0 z-40 px-5 py-3.5" aria-label="Primary navigation">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
         <a href="#hero" className="font-display text-sm font-bold uppercase tracking-[0.28em] text-white">GT // ORBITAL</a>
+        <div className="console-readout hidden lg:flex" aria-hidden="true">
+          <span><i>UTC</i>{clock ?? "--:--:--"}</span>
+          <span><i>Depth</i>{String(depth).padStart(3, "0")}%</span>
+          <span className="readout-section"><i>Sector</i>{activeLabel}</span>
+        </div>
         <div className="hidden items-center gap-5 text-xs uppercase tracking-[0.18em] text-white/62 md:flex">
           {navItems.map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`} className="transition hover:text-ion">{item}</a>
@@ -254,6 +331,7 @@ export default function Home() {
   const nebulaY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
   const [loading, setLoading] = useState(true);
   const reduce = useReducedMotion();
+  const telemetry = useTelemetry();
 
   useEffect(() => {
     const id = window.setTimeout(() => setLoading(false), reduce ? 150 : 1400);
@@ -287,7 +365,8 @@ export default function Home() {
       <CustomCursor />
       <Starfield />
       <motion.div className="nebula-layer" style={{ y: nebulaY }} aria-hidden="true" />
-      <SiteNav />
+      <SiteNav {...telemetry} />
+      <SectionRail active={telemetry.active} />
 
       <section id="hero" className="hero-grid relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-5 pb-20 pt-28 sm:px-8" aria-labelledby="hero-title">
         <div className="hero-copy z-10 max-w-3xl">
@@ -334,7 +413,8 @@ export default function Home() {
           <div className="particle" />
           <div className="particle" />
           <div className="particle" />
-          <Canvas camera={{ position: [0, 0, 5.4], fov: 44 }} dpr={[1, 1.7]} performance={{ min: 0.5 }}>
+          <div className="reticle" />
+          <Canvas style={{ position: "absolute", inset: 0, height: "auto" }} camera={{ position: [0, 0, 5.4], fov: 44 }} dpr={[1, 1.7]} performance={{ min: 0.5 }}>
             <PlanetScene animate={!reduce} />
           </Canvas>
           <div className="planet-stats">
@@ -443,11 +523,12 @@ export default function Home() {
             <h3>Looking for a software engineering internship</h3>
             <p>
               I&apos;m interested in teams building AI products, backend systems, or anything that touches hardware.
-              The fastest way to reach me is a LinkedIn message.
+              Email is the quickest way to reach me.
             </p>
           </div>
           <div className="contact-links">
-            <a className="primary-btn" href="https://www.linkedin.com/in/gabrielthayil/" target="_blank" rel="noopener noreferrer"><Linkedin size={18} aria-hidden="true" /> Message me on LinkedIn</a>
+            <a className="primary-btn" href="mailto:gabrielnthayil@gmail.com"><Mail size={18} aria-hidden="true" /> gabrielnthayil@gmail.com</a>
+            <a className="icon-btn" href="https://www.linkedin.com/in/gabrielthayil/" target="_blank" rel="noopener noreferrer"><Linkedin size={18} aria-hidden="true" /> LinkedIn</a>
             <a className="icon-btn" href="https://github.com/GabrielNThayil/" target="_blank" rel="noopener noreferrer"><Github size={18} aria-hidden="true" /> GitHub</a>
             <a className="icon-btn" href="/Gabriel_Resume.docx" target="_blank" rel="noopener noreferrer"><Download size={18} aria-hidden="true" /> Résumé</a>
           </div>
